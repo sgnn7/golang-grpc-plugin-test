@@ -5,34 +5,36 @@ import (
 	"time"
 
 	"github.com/sgnn7/golang-grpc-plugin-test/app/plugin"
-	"github.com/sgnn7/golang-grpc-plugin-test/app/plugin/echoer"
+	tcp_connector "github.com/sgnn7/golang-grpc-plugin-test/app/plugin/connector/tcp"
 )
 
-type echoerImpl struct {
+type tcpConnectorImpl struct {
 	startTime time.Time
 }
 
-var echoerStartTime = time.Now()
+var tcpConnectorStartTime = time.Now()
 
-func Echoer() echoer.IEcho {
-	return &echoerImpl{}
+func TCPConnector() tcp_connector.ITCPConnector {
+	return &tcpConnectorImpl{}
 }
 
-func (p *echoerImpl) Reply(sentString string) string {
-	return sentString + " plus plugin-added string"
+func (p *tcpConnectorImpl) Connect(address string) error {
+	log.Printf("Plugin Connect: %s", address)
+	return nil
 }
 
 func main() {
 	pluginOpts := &plugin.PluginOpts{
-		Echoer:      Echoer,
-		RunAsPlugin: true,
+		TCPConnector: TCPConnector,
+		RunAsPlugin:  true,
 	}
 
 	plugin.StartPlugin(pluginOpts, make(chan bool))
 
-	echoPlugin := Echoer()
+	//	tcpConnectorPlugin := TCPConnector()
 	for {
-		log.Printf("Plugin self-test: %s\n", echoPlugin.Reply("self-test"))
+		//	log.Printf("Plugin self-test")
+		//		log.Printf("Plugin self-test: %s\n", tcpConnectorPlugin.Connect("tcp://localhost:8080"))
 		time.Sleep(1000 * time.Millisecond)
 	}
 }

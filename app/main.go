@@ -11,7 +11,7 @@ import (
 	"github.com/hashicorp/go-plugin"
 
 	app_plugin "github.com/sgnn7/golang-grpc-plugin-test/app/plugin"
-	"github.com/sgnn7/golang-grpc-plugin-test/app/plugin/echoer"
+	tcp_connector "github.com/sgnn7/golang-grpc-plugin-test/app/plugin/connector/tcp"
 )
 
 type PluginManager struct {
@@ -45,17 +45,19 @@ func (manager *PluginManager) StartPlugin(pluginName string) error {
 		return err
 	}
 
-	rawPlugingInterface, err := rpcclient.Dispense(echoer.InterfaceName)
+	rawPluginInterface, err := rpcclient.Dispense(tcp_connector.InterfaceName)
 	if err != nil {
-		log.Printf("Failed to get interface: %s error: %s", echoer.InterfaceName, err)
+		log.Printf("Failed to get interface: %s error: %s", tcp_connector.InterfaceName, err)
 		return err
 	}
 
-	echoerObj := rawPlugingInterface.(echoer.IEcho)
+	tcpConnectorObj := rawPluginInterface.(tcp_connector.ITCPConnector)
 
 	go func() {
 		for {
-			log.Printf("RCP call to plugin: %s", echoerObj.Reply("Marco!"))
+			log.Println()
+			log.Printf("RCP call to plugin response: %v",
+				tcpConnectorObj.Connect("tcp://localhost:8080"))
 			time.Sleep(1000 * time.Millisecond)
 		}
 	}()

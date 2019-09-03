@@ -7,12 +7,12 @@ import (
 
 	"github.com/hashicorp/go-plugin"
 
-	"github.com/sgnn7/golang-grpc-plugin-test/app/plugin/echoer"
+	tcp_connector "github.com/sgnn7/golang-grpc-plugin-test/app/plugin/connector/tcp"
 )
 
 type PluginOpts struct {
-	Echoer      echoer.EchoFunc
-	RunAsPlugin bool
+	TCPConnector tcp_connector.TCPConnectorFunc
+	RunAsPlugin  bool
 }
 
 var HandshakeConfig = plugin.HandshakeConfig{
@@ -47,13 +47,13 @@ func StartPlugin(options *PluginOpts, quit chan bool) {
 // The reserved parameter should only be used by the RPC receiver (the plugin).
 // Otherwise, reserved should be nil for the RPC sender (the mainapp).
 func GetPluginMap(options *PluginOpts) map[string]plugin.Plugin {
-	var echoerObj echoer.Echoer
+	var tcpConnectorObj tcp_connector.TCPConnector
 
 	if options != nil {
-		echoerObj.F = options.Echoer
+		tcpConnectorObj.F = options.TCPConnector
 	}
 
 	return map[string]plugin.Plugin{
-		echoer.InterfaceName: &echoerObj,
+		tcp_connector.InterfaceName: &tcpConnectorObj,
 	}
 }
