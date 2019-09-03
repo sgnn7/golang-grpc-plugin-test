@@ -23,7 +23,7 @@ func (tcpConnectorPlugin *TCPConnector) Server(pluginBroker *plugin.MuxBroker) (
 	}, nil
 }
 
-func (tcpConnectorPlugin *tcpConnectorServer) Connect(address string, result *error) error {
+func (tcpConnectorPlugin *tcpConnectorServer) Connect(address string, result *plugin.BasicError) error {
 	log.Printf("In: Server Connect: %s", address)
 	*result = tcpConnectorPlugin.ITCPConnector.Connect(address)
 	log.Printf("In: Server Reply Response: %v", *result)

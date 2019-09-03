@@ -22,10 +22,10 @@ func (tcpConnectorPlugin *TCPConnector) Client(pluginBroker *plugin.MuxBroker,
 	}, nil
 }
 
-func (tcpConnectorClient *tcpConnectorClient) Connect(address string) error {
+func (tcpConnectorClient *tcpConnectorClient) Connect(address string) plugin.BasicError {
 	log.Printf("In: Client Connect: %s", address)
 
-	var resp_err error
+	var resp_err plugin.BasicError
 
 	err := tcpConnectorClient.Client.Call("Plugin.Connect", &address, &resp_err)
 	if err != nil {

@@ -8,7 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/hashicorp/go-plugin"
+	go_plugin "github.com/hashicorp/go-plugin"
 
 	app_plugin "github.com/sgnn7/golang-grpc-plugin-test/app/plugin"
 	tcp_connector "github.com/sgnn7/golang-grpc-plugin-test/app/plugin/connector/tcp"
@@ -27,7 +27,7 @@ func (manager *PluginManager) StartPlugin(pluginName string) error {
 
 	log.Printf("Starting plugin: %s", pluginFile)
 
-	client := plugin.NewClient(&plugin.ClientConfig{
+	client := go_plugin.NewClient(&go_plugin.ClientConfig{
 		Cmd:        exec.Command(pluginFile),
 		Managed:    true,
 		SyncStdout: os.Stdout,
@@ -57,7 +57,7 @@ func (manager *PluginManager) StartPlugin(pluginName string) error {
 		for {
 			log.Println()
 			log.Printf("RCP call to plugin response: %v",
-				tcpConnectorObj.Connect("tcp://localhost:8080"))
+				tcpConnectorObj.Connect("localhost:8080"))
 			time.Sleep(1000 * time.Millisecond)
 		}
 	}()
