@@ -3,12 +3,11 @@ package tcp
 const InterfaceName = "TCPConnector"
 
 type ITCPConnector interface {
-	Connect(string) error
-}
-
-type TCPConnector struct {
-	// TODO: Use TCPConnectorFunc
-	F func() ITCPConnector
+	Connect(address string) error
 }
 
 type TCPConnectorFunc func() ITCPConnector
+
+type TCPConnector struct {
+	F TCPConnectorFunc
+}
