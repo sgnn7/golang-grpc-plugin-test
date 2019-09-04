@@ -8,11 +8,15 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/hashicorp/go-plugin"
+	go_plugin "github.com/hashicorp/go-plugin"
 
+	"github.com/sgnn7/golang-grpc-plugin-test/app/listener"
 	app_plugin "github.com/sgnn7/golang-grpc-plugin-test/app/plugin"
-	"github.com/sgnn7/golang-grpc-plugin-test/app/plugin/echoer"
+	tcp_connector "github.com/sgnn7/golang-grpc-plugin-test/app/plugin/connector/tcp"
+	"github.com/sgnn7/golang-grpc-plugin-test/app/pluginproxy"
 )
+
+const TargetAddress = "127.0.0.1:8080"
 
 type PluginManager struct {
 }
@@ -27,7 +31,7 @@ func (manager *PluginManager) StartPlugin(pluginName string) error {
 
 	log.Printf("Starting plugin: %s", pluginFile)
 
-	client := plugin.NewClient(&plugin.ClientConfig{
+	client := go_plugin.NewClient(&go_plugin.ClientConfig{
 		Cmd:        exec.Command(pluginFile),
 		Managed:    true,
 		SyncStdout: os.Stdout,
@@ -40,23 +44,40 @@ func (manager *PluginManager) StartPlugin(pluginName string) error {
 	rpcclient, err := client.Client()
 
 	if err != nil {
-		log.Printf("Failed to get RPC Client: %s", err)
+		log.Printf("Failed to get RPC Client: %v", err)
 		client.Kill()
 		return err
 	}
 
-	rawPlugingInterface, err := rpcclient.Dispense(echoer.InterfaceName)
+	rawPluginInterface, err := rpcclient.Dispense(tcp_connector.InterfaceName)
 	if err != nil {
-		log.Printf("Failed to get interface: %s error: %s", echoer.InterfaceName, err)
+		log.Printf("Failed to get interface: %s error: %v", tcp_connector.InterfaceName, err)
 		return err
 	}
 
-	echoerObj := rawPlugingInterface.(echoer.IEcho)
+	tcpConnectorObj := rawPluginInterface.(tcp_connector.ITCPConnector)
+
+	programExitChan := make(chan bool, 1)
+	clientConnChannel, err := listener.StartPluginListeningProcess(programExitChan)
+	if err != nil {
+		log.Printf("Failed to open client-facing socket address/file: %v", err)
+		return err
+	}
 
 	go func() {
-		for {
-			log.Printf("RCP call to plugin: %s", echoerObj.Reply("Marco!"))
-			time.Sleep(1000 * time.Millisecond)
+		for clientConn := range clientConnChannel {
+			log.Println()
+			log.Println("Creating passthough socket...")
+
+			localPassthroughAddress, err := pluginproxy.CreatePassthroughProxy(clientConn, TargetAddress)
+			if err != nil {
+				log.Printf("Failed to open a shared socket address/file: %v", err)
+				continue
+			}
+
+			log.Println("Activating plugin...")
+			log.Printf("RCP call to plugin response: %v",
+				tcpConnectorObj.Connect(localPassthroughAddress))
 		}
 	}()
 
@@ -68,7 +89,7 @@ func main() {
 	pluginMgr.StartPlugin("testplugin")
 
 	for {
-		log.Printf("App main status: OK")
+		//		log.Printf("App main status: OK")
 		time.Sleep(1000 * time.Millisecond)
 	}
 }
