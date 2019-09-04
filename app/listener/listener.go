@@ -5,8 +5,8 @@ import (
 	"net"
 )
 
-func StartPluginListeningProcess(pluginExit chan bool) (chan net.Conn, error) {
-	listenSocket, err := net.Listen("tcp", ":9090")
+func StartPluginListeningProcess(address string, pluginExit chan bool) (chan net.Conn, error) {
+	listenSocket, err := net.Listen("tcp", address)
 	if err != nil {
 		return nil, err
 	}

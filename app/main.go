@@ -16,7 +16,8 @@ import (
 	"github.com/sgnn7/golang-grpc-plugin-test/app/pluginproxy"
 )
 
-const TargetAddress = "127.0.0.1:8080"
+const TargetAddress = "localhost:8080"
+const ListenerAddress = ":9090"
 
 type PluginManager struct {
 }
@@ -58,7 +59,7 @@ func (manager *PluginManager) StartPlugin(pluginName string) error {
 	tcpConnectorObj := rawPluginInterface.(tcp_connector.ITCPConnector)
 
 	programExitChan := make(chan bool, 1)
-	clientConnChannel, err := listener.StartPluginListeningProcess(programExitChan)
+	clientConnChannel, err := listener.StartPluginListeningProcess(ListenerAddress, programExitChan)
 	if err != nil {
 		log.Printf("Failed to open client-facing socket address/file: %v", err)
 		return err

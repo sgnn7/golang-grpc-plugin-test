@@ -7,12 +7,12 @@ import (
 	"sync"
 )
 
-func handleConnection(clientConn net.Conn, fromPluginConn net.Conn, targetAddr string) {
+func handleConnection(clientConn net.Conn, pluginConn net.Conn, targetAddr string) {
 	log.Printf("Got a new connection to passthrough socket from %v",
-		fromPluginConn.RemoteAddr().String())
+		pluginConn.RemoteAddr().String())
 
 	log.Printf("Starting backend server connection to %s...", targetAddr)
-	toBackendConn, err := net.Dial("tcp", targetAddr)
+	backendConn, err := net.Dial("tcp", targetAddr)
 	if err != nil {
 		log.Printf("Backend server connect dial Error: %v", err)
 		return
@@ -23,26 +23,29 @@ func handleConnection(clientConn net.Conn, fromPluginConn net.Conn, targetAddr s
 	defer func() {
 		pluginExit = true
 		log.Println("Closing backend connection...")
-		toBackendConn.Close()
+		backendConn.Close()
 	}()
 
 	log.Println("Shuttling bytes...")
 
 	wg := &sync.WaitGroup{}
-	wg.Add(2)
+	wg.Add(3)
 
 	log.Println("Linking connection from backend to plugin socket...")
-	go proxyConnection(toBackendConn, clientConn, &pluginExit, wg)
+	go proxyConnection(backendConn, clientConn, &pluginExit, wg)
 
 	log.Println("Linking connection from plugin socket to backend...")
-	go proxyConnection(fromPluginConn, toBackendConn, &pluginExit, wg)
+	go proxyConnection(pluginConn, backendConn, &pluginExit, wg)
+
+	log.Println("Linking connection from client to plugin...")
+	go proxyConnection(clientConn, pluginConn, &pluginExit, wg)
 
 	log.Println("Shuttling data...")
 	wg.Wait()
 
 	log.Println("Closing client connection...")
 	clientConn.Close()
-	toBackendConn.Close()
+	backendConn.Close()
 
 	log.Printf("Connection closed")
 	log.Printf("Passthrough subroutine done")
@@ -83,16 +86,16 @@ func CreatePassthroughProxy(clientConn net.Conn, targetAddr string) (string, err
 
 	go func() {
 		// One time use - no need to loop
-		fromPluginConn, err := listenSocket.Accept()
+		pluginConn, err := listenSocket.Accept()
 		if err != nil {
 			log.Printf("Listen error: %v", err)
 		}
 
 		log.Println("New connection from plugin to broker accepted")
-		handleConnection(clientConn, fromPluginConn, targetAddr)
+		handleConnection(clientConn, pluginConn, targetAddr)
 
 		log.Printf("Closing passthrough connection of %s...", listenSocket.Addr().String())
-		fromPluginConn.Close()
+		pluginConn.Close()
 		log.Printf("Passthrough connection closed")
 
 		log.Printf("Closing passthrough listener of %s...", listenSocket.Addr().String())
