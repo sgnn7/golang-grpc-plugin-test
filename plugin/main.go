@@ -68,8 +68,6 @@ func (p *tcpConnectorImpl) Connect(address string) go_plugin.BasicError {
 		return *go_plugin.NewBasicError(err)
 	}
 
-	time.Sleep(1 * time.Second)
-
 	log.Println("Closing connection to broker's socket...")
 	if err = connection.Close(); err != nil {
 		log.Printf("Plugin Connect Close Error: %v", err)
