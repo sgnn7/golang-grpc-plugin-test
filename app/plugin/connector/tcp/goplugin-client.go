@@ -35,3 +35,17 @@ func (tcpConnectorClient *tcpConnectorClient) Connect(address string) plugin.Bas
 	log.Printf("In: Client Connect Response: %v", resp_err)
 	return resp_err
 }
+
+func (tcpConnectorClient *tcpConnectorClient) PluginInfo() map[string]string {
+	log.Printf("In: Client PluginInfo")
+
+	var resp map[string]string
+
+	err := tcpConnectorClient.Client.Call("Plugin.PluginInfo", new(interface{}), &resp)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Printf("In: Client PluginInfo Response: %v", resp)
+	return resp
+}

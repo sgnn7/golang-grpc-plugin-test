@@ -22,6 +22,15 @@ const ListenerAddress = ":9090"
 type PluginManager struct {
 }
 
+func printPluginInfo(infoMap map[string]string) {
+	log.Println("---------------------------")
+	log.Println("Plugin Info:")
+	for key, value := range infoMap {
+		log.Println("Key:", key, "Value:", value)
+	}
+	log.Println("---------------------------")
+}
+
 func (manager *PluginManager) StartPlugin(pluginName string) error {
 	currDir, err := os.Getwd()
 	if err != nil {
@@ -57,6 +66,9 @@ func (manager *PluginManager) StartPlugin(pluginName string) error {
 	}
 
 	tcpConnectorObj := rawPluginInterface.(tcp_connector.ITCPConnector)
+
+	log.Println("PluginInfo:")
+	printPluginInfo(tcpConnectorObj.PluginInfo())
 
 	programExitChan := make(chan bool, 1)
 	clientConnChannel, err := listener.StartPluginListeningProcess(ListenerAddress, programExitChan)

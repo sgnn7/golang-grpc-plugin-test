@@ -22,6 +22,15 @@ func TCPConnector() tcp_connector.ITCPConnector {
 	return &tcpConnectorImpl{}
 }
 
+func (p *tcpConnectorImpl) PluginInfo() map[string]string {
+	return map[string]string{
+		"version":          "1.2.3",
+		"pluginAPIVersion": "0.0.1",
+		"id":               "http-connector",
+		"description":      "HTTP connector built externally",
+	}
+}
+
 func (p *tcpConnectorImpl) Connect(address string) go_plugin.BasicError {
 	log.Printf("Plugin Connect: %s", address)
 

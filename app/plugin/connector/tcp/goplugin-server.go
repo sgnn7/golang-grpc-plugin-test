@@ -29,3 +29,10 @@ func (tcpConnectorPlugin *tcpConnectorServer) Connect(address string, result *pl
 	log.Printf("In: Server Reply Response: %v", *result)
 	return nil
 }
+
+func (tcpConnectorPlugin *tcpConnectorServer) PluginInfo(args interface{}, result *map[string]string) error {
+	log.Printf("In: Server PluginInfo")
+	*result = tcpConnectorPlugin.ITCPConnector.PluginInfo()
+	log.Printf("In: Server PluginInfo Response: %v", *result)
+	return nil
+}
